@@ -1,53 +1,53 @@
 <script setup lang="ts">
-import { Icon } from '@iconify/vue'
+  import { Icon } from '@iconify/vue'
 
-const emit = defineEmits<{
-  decoded: [data: string]
-}>()
+  const emit = defineEmits<{
+    decoded: [data: string]
+  }>()
 
-const scannerRef = ref<any>(null)
-const isStarting = ref(true)
-const errorMsg = ref('')
+  const scannerRef = ref<any>(null)
+  const isStarting = ref(true)
+  const errorMsg = ref('')
 
-async function startScanner() {
-  try {
-    const { Html5Qrcode } = await import('html5-qrcode')
-    const scanner = new Html5Qrcode('qr-reader')
-    scannerRef.value = scanner
+  async function startScanner() {
+    try {
+      const { Html5Qrcode } = await import('html5-qrcode')
+      const scanner = new Html5Qrcode('qr-reader')
+      scannerRef.value = scanner
 
-    await scanner.start(
-      { facingMode: 'environment' },
-      { fps: 10, qrbox: { width: 250, height: 250 } },
-      (decoded: string) => {
-        scanner.stop().catch(() => {})
-        emit('decoded', decoded)
-      },
-      () => {},
-    )
-    isStarting.value = false
-  }
-  catch (err: any) {
-    isStarting.value = false
-    if (err?.message?.includes('Permission')) {
-      errorMsg.value = 'Camera access denied. Please allow camera access in your browser settings.'
+      await scanner.start(
+        { facingMode: 'environment' },
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        (decoded: string) => {
+          scanner.stop().catch(() => { })
+          emit('decoded', decoded)
+        },
+        () => { },
+      )
+      isStarting.value = false
     }
-    else {
-      errorMsg.value = `Failed to access camera: ${err?.message || err}`
+    catch (err: any) {
+      isStarting.value = false
+      if (err?.message?.includes('Permission')) {
+        errorMsg.value = 'Camera access denied. Please allow camera access in your browser settings.'
+      }
+      else {
+        errorMsg.value = `Failed to access camera: ${err?.message || err}`
+      }
     }
   }
-}
 
-onMounted(() => {
-  startScanner()
-})
+  onMounted(() => {
+    startScanner()
+  })
 
-onBeforeUnmount(() => {
-  if (scannerRef.value) {
-    scannerRef.value.stop().catch(() => {})
-    scannerRef.value.clear().catch(() => {})
-    scannerRef.value = null
-  }
-})
+  onBeforeUnmount(() => {
+    if (scannerRef.value) {
+      scannerRef.value.stop().catch(() => { })
+      scannerRef.value.clear().catch(() => { })
+      scannerRef.value = null
+    }
+  })
 </script>
 
 <template>
