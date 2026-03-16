@@ -5,22 +5,21 @@
 
   const navItems = [
     { path: '/issuer', label: 'Create Document QR', icon: 'lucide:file-signature' },
-    { path: '/verifier', label: 'Verify Document', icon: 'lucide:shield-check' },
+    { path: '/verifier', label: 'Verify Document QR', icon: 'lucide:shield-check' },
     { path: '/keys', label: 'Manage Keys', icon: 'lucide:key-round' },
   ]
 </script>
 
 <template>
   <aside
-    class="fixed left-0 top-0 h-screen w-64 bg-linear-to-b from-emerald-900 to-emerald-800 text-white flex flex-col z-50 shadow-xl">
+    class="fixed left-0 top-0 h-screen w-70 bg-linear-to-b from-emerald-900 to-emerald-800 text-white flex flex-col z-50 shadow-xl">
     <div class="px-5 py-6 border-b border-emerald-700/50">
       <div class="flex items-center gap-3">
         <div class="w-9 h-9 bg-emerald-500/20 rounded-lg flex items-center justify-center">
           <Icon icon="lucide:qr-code" class="w-5 h-5 text-emerald-300" />
         </div>
         <div>
-          <h1 class="text-base font-bold leading-tight tracking-tight">Smart Secure</h1>
-          <p class="text-xs text-emerald-400">QR-Code System</p>
+          <h1 class="text-base font-bold leading-tight tracking-tight">Smart Secure QR System</h1>
         </div>
       </div>
     </div>
@@ -35,7 +34,7 @@
       </NuxtLink>
     </nav>
 
-    <div class="px-5 py-4 border-t border-emerald-700/50 text-xs text-emerald-500">
+    <div class="px-5 py-4 border-t border-emerald-700/50 text-xs text-emerald-300 font-medium">
       <p>&copy; 2026 FAST RG. All Rights Reserved</p>
     </div>
   </aside>
