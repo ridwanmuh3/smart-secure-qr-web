@@ -47,7 +47,7 @@
     <div class="flex items-center justify-between mb-8">
       <div>
         <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Manage Keys</h1>
-        <p class="text-sm text-gray-500 mt-1">Create, import, and manage Ed25519 cryptographic keys</p>
+        <p class="text-sm text-gray-500 mt-1">Create, import, and manage ECDSA P-256 cryptographic keys</p>
       </div>
       <div class="flex gap-2">
         <button

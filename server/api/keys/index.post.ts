@@ -1,12 +1,12 @@
 import { serverSupabaseClient } from '#supabase/server'
-import { generateEd25519KeyPair, computeFingerprint } from '~~/server/utils/crypto'
+import { generateKeyPair, computeFingerprint } from '~~/server/utils/crypto'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
   const name = body?.name?.trim()
   if (!name) return fail('Key name is required')
 
-  const keys = generateEd25519KeyPair()
+  const keys = generateKeyPair()
   const fingerprint = computeFingerprint(keys.publicKeyB64)
 
   const client = await serverSupabaseClient(event)

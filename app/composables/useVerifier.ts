@@ -52,7 +52,7 @@ export function useVerifier() {
     try {
       // Parse secure_id from QR data
       let secureId = qrData
-      const urlMatch = qrData.match(/\/verify\/([0-9a-f-]{36})/i)
+      const urlMatch = qrData.match(/\/(?:verify|r)\/([0-9a-f-]{36})/i)
       if (urlMatch) secureId = urlMatch[1]
 
       const res = await $fetch<{ success: boolean; data: VerificationResult }>('/api/verifier/verify', {

@@ -29,10 +29,11 @@ export async function generateQRBuffer(content: string): Promise<Buffer> {
 
 /**
  * Build verification URL from secure_id.
+ * Uses /r/:id redirect endpoint so QR destination can be changed dynamically.
  */
 export function buildVerifyURL(secureId: string): string {
   const baseUrl = process.env.NUXT_PUBLIC_BASE_URL || ''
-  if (baseUrl) return `${baseUrl}/verify/${secureId}`
+  if (baseUrl) return `${baseUrl}/r/${secureId}`
   return secureId
 }
 

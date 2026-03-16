@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
 
   // Parse secure_id from QR data
   let secureId = qrData
-  const urlMatch = qrData.match(/\/verify\/([0-9a-f-]{36})/i)
+  const urlMatch = qrData.match(/\/(?:verify|r)\/([0-9a-f-]{36})/i)
   if (urlMatch) secureId = urlMatch[1]
   const uuidMatch = secureId.match(/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i)
   if (uuidMatch) secureId = uuidMatch[1]

@@ -47,12 +47,15 @@ export default defineEventHandler(async (event) => {
   const hashBytes = Buffer.from(documentHash, 'hex')
   const innerSig = sign(keyRow.private_key, hashBytes)
 
-  // 3. Build inner payload: UUID(16) + Hash(32) + InnerSig(64) + FileName
+  // 3. Build inner payload: UUID(16) + Hash(32) + SigLen(2) + InnerSig(variable) + FileName
   const secureId = crypto.randomUUID()
   const uuidBytes = Buffer.from(secureId.replace(/-/g, ''), 'hex')
+  const sigLenBuf = Buffer.alloc(2)
+  sigLenBuf.writeUInt16BE(innerSig.length)
   const innerPayload = Buffer.concat([
     uuidBytes,
     hashBytes,
+    sigLenBuf,
     innerSig,
     Buffer.from(fileName, 'utf-8'),
   ])

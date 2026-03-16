@@ -1,5 +1,5 @@
 import { serverSupabaseClient } from '#supabase/server'
-import { verify as ed25519Verify } from '~~/server/utils/crypto'
+import { verify as ecdsaVerify } from '~~/server/utils/crypto'
 import { tlockDecrypt } from '~~/server/utils/tlock'
 import type { VerificationResult } from '#shared/types'
 
@@ -7,8 +7,8 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event)
   let secureId = body?.secure_id?.trim() || ''
 
-  // Parse secure_id from URL format: /verify/UUID or full URL
-  const urlMatch = secureId.match(/\/verify\/([0-9a-f-]{36})/i)
+  // Parse secure_id from URL format: /verify/UUID, /r/UUID, or full URL
+  const urlMatch = secureId.match(/\/(?:verify|r)\/([0-9a-f-]{36})/i)
   if (urlMatch) secureId = urlMatch[1]
 
   // Also try raw UUID pattern
@@ -103,7 +103,7 @@ export async function verifySecureId(event: any, secureId: string, sourceIP: str
   const outerData = Buffer.concat([timestampBuf, encPayload])
   const outerSig = Buffer.from(payload.outer_signature, 'base64')
 
-  if (!ed25519Verify(keyRow.public_key, outerData, outerSig)) {
+  if (!ecdsaVerify(keyRow.public_key, outerData, outerSig)) {
     return ok<VerificationResult>({
       status: 'tampered',
       message: 'Outer signature is invalid — document may have been modified',
@@ -123,8 +123,8 @@ export async function verifySecureId(event: any, secureId: string, sourceIP: str
     })
   }
 
-  // Parse inner payload: UUID(16) + Hash(32) + InnerSig(64) + FileName
-  if (decrypted.length < 112) {
+  // Parse inner payload: UUID(16) + Hash(32) + SigLen(2) + InnerSig(variable) + FileName
+  if (decrypted.length < 50) {
     return ok<VerificationResult>({
       status: 'tampered',
       message: 'Inner payload is too short — data may be corrupted',
@@ -132,10 +132,11 @@ export async function verifySecureId(event: any, secureId: string, sourceIP: str
   }
 
   const innerHash = decrypted.subarray(16, 48)
-  const innerSig = decrypted.subarray(48, 112)
+  const sigLen = decrypted.readUInt16BE(48)
+  const innerSig = decrypted.subarray(50, 50 + sigLen)
 
   // Verify inner signature
-  if (!ed25519Verify(keyRow.public_key, innerHash, innerSig)) {
+  if (!ecdsaVerify(keyRow.public_key, innerHash, innerSig)) {
     return ok<VerificationResult>({
       status: 'tampered',
       message: 'Inner signature is invalid — document may have been modified',
