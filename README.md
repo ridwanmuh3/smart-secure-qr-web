@@ -110,24 +110,6 @@ For deployment options, refer to the [Nuxt deployment documentation](https://nux
 
 ## Performance Benchmark
 
-### Primitive-Level Benchmark
-
-Each cryptographic primitive invoked in isolation. **N=100 iterations** against a **1 MB document** using ECDSA P-256 + SHA-256 + Drand tlock.
-
-| Metric                          | N   | Min       | Max      | Avg           |
-| ------------------------------- | --- | --------- | -------- | ------------- |
-| Document Hashing (SHA3-256, 1MB)| 100 | 3.56 ms   | 16.00 ms | 5.38 ms       |
-| ECDSA P-256 Key Generation      | 100 | 0.02 ms   | 0.06 ms  | 0.02 ms       |
-| ECDSA P-256 Sign (inner)        | 100 | 0.05 ms   | 0.13 ms  | 0.06 ms       |
-| ECDSA P-256 Sign (outer)        | 100 | 0.05 ms   | 0.17 ms  | 0.08 ms       |
-| ECDSA P-256 Verify (inner)      | 100 | 0.10 ms   | 0.22 ms  | 0.12 ms       |
-| ECDSA P-256 Verify (outer)      | 100 | 0.10 ms   | 0.52 ms  | 0.13 ms       |
-| QR Code Generation              | 100 | 15.16 ms  | 65.47 ms | 19.79 ms      |
-| Time-Lock Encrypt (Drand)       | 100 | 759.49 ms | 1.944 s  | 827.56 ms     |
-| Time-Lock Decrypt (Drand)       | 100 | 945.40 ms | 1.192 s  | 1.012 s       |
-| **Full QR Generation**          | 100 | 778.95 ms | 1.063 s  | **850.00 ms** |
-| **Full Verification**           | 100 | 952.34 ms | 1.251 s  | **1.010 s**   |
-
 ### Cross-File Benchmark
 
 Computed metrics across 12 test files (100KB, 500KB, 1MB, 5MB in RTF, DOCX, PDF formats).
