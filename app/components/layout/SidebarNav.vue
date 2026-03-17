@@ -11,8 +11,9 @@
 </script>
 
 <template>
-  <aside
-    class="fixed left-0 top-0 h-screen w-70 bg-linear-to-b from-emerald-900 to-emerald-800 text-white flex flex-col z-50 shadow-xl">
+  <!-- SIDEBAR DESKTOP -->
+  <section
+    class="fixed left-0 top-0 h-screen w-70 bg-linear-to-b from-emerald-900 to-emerald-800 text-white flex flex-col z-50 shadow-xl invisible md:visible">
     <div class="px-5 py-6 border-b border-emerald-700/50">
       <div class="flex items-center gap-3">
         <div class="w-9 h-9 bg-emerald-500/20 rounded-lg flex items-center justify-center">
@@ -37,5 +38,19 @@
     <div class="px-5 py-4 border-t border-emerald-700/50 text-xs text-emerald-300 font-medium">
       <p>&copy; 2026 FAST RG. All Rights Reserved</p>
     </div>
-  </aside>
+  </section>
+  <!-- NAVBAR MOBILE -->
+  <section
+    class="fixed left-0 bottom-0 right-0 h-16 w-full bg-linear-to-b from-emerald-900 to-emerald-800 text-white z-50 shadow-xl md:hidden flex items-center justify-center">
+    <nav class="flex items-center justify-center w-full">
+      <NuxtLink v-for="item in navItems" :key="item.path" :to="item.path"
+        class="flex-1 flex items-center flex-col justify-center gap-1.5 px-2.5 py-2.5  text-sm transition-all duration-200"
+        :class="route.path === item.path
+          ? 'bg-white/15 text-white font-medium shadow-sm backdrop-blur-sm'
+          : 'text-emerald-200 hover:bg-white/8 hover:text-white'">
+        <Icon :icon="item.icon" class="w-5 h-5 shrink-0" />
+        <span class="text-xs text-center">{{ item.label }}</span>
+      </NuxtLink>
+    </nav>
+  </section>
 </template>

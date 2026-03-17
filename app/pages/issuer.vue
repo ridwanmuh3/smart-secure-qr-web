@@ -12,7 +12,7 @@
 </script>
 
 <template>
-  <div class="max-w-3xl mx-auto px-6">
+  <div class="max-w-3xl mx-auto px-2 md:px-6">
     <div class="mb-8">
       <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Create Document QR Code</h1>
       <p class="text-sm text-gray-500 mt-1">Sign your document and generate a secure QR code with time-lock encryption

@@ -46,7 +46,7 @@
 </script>
 
 <template>
-  <div class="max-w-3xl mx-auto px-6">
+  <div class="max-w-3xl mx-auto px-2 md:px-6">
     <div class="mb-8">
       <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Verify Document</h1>
       <p class="text-sm text-gray-500 mt-1">Upload a PDF document or QR code image to verify authenticity</p>
