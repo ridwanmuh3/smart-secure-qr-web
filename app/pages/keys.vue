@@ -51,13 +51,13 @@
       </div>
       <div class="w-full flex gap-4 md:gap-2">
         <button
-          class="flex flex-1 md:flex-0 items-center justify-center md:justify-start gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 active:scale-[0.98] text-sm font-semibold transition-all duration-200 shadow-sm shadow-emerald-200 cursor-pointer"
+          class="flex flex-1 items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 active:scale-[0.98] text-sm font-semibold transition-all duration-200 shadow-sm shadow-emerald-200 cursor-pointer"
           @click="showGenDialog = true">
           <Icon icon="lucide:plus" class="w-4 h-4" />
           Create Key
         </button>
         <button
-          class="flex flex-1 md:flex-0 items-center justify-center md:justify-start gap-2 px-4 py-2.5 border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 active:scale-[0.98] text-sm font-medium transition-all duration-200 cursor-pointer "
+          class="flex flex-1 items-center justify-center gap-2 px-4 py-2.5 border border-gray-200 text-gray-700 rounded-xl hover:bg-gray-50 active:scale-[0.98] text-sm font-medium transition-all duration-200 cursor-pointer "
           @click="showImportDialog = true">
           <Icon icon="lucide:import" class="w-4 h-4" />
           Import
