@@ -5,49 +5,50 @@
     decoded: [data: string]
   }>()
 
+  const { Html5Qrcode } = await import('html5-qrcode')
+  const scanner = new Html5Qrcode('qr-reader')
   const scannerRef = ref<any>(null)
   const isStarting = ref(true)
   const errorMsg = ref('')
 
-  async function startScanner() {
+  watchPostEffect(async (onCleanup) => {
     try {
-      const { Html5Qrcode } = await import('html5-qrcode')
-      const scanner = new Html5Qrcode('qr-reader')
-      scannerRef.value = scanner
+      scannerRef.value = scanner;
 
       await scanner.start(
         { facingMode: 'environment' },
         { fps: 10, qrbox: { width: 250, height: 250 } },
         (decoded: string) => {
-          scanner.stop().catch(() => { })
-          emit('decoded', decoded)
+          scanner.stop().catch(() => { });
+          emit('decoded', decoded);
         },
         () => { },
-      )
-      isStarting.value = false
+      );
+      isStarting.value = false;
+    } catch (err: any) {
+      handleScannerError(err);
     }
-    catch (err: any) {
-      isStarting.value = false
-      if (err?.message?.includes('Permission')) {
-        errorMsg.value = 'Camera access denied. Please allow camera access in your browser settings.'
+
+    onCleanup(async () => {
+      if (scannerRef.value) {
+        try {
+          await scannerRef.value.stop();
+          await scannerRef.value.clear();
+        } catch (e) {
+        } finally {
+          scannerRef.value = null;
+        }
       }
-      else {
-        errorMsg.value = `Failed to access camera: ${err?.message || err}`
-      }
-    }
+    });
+  });
+
+  function handleScannerError(err: any) {
+    isStarting.value = false;
+    const msg = err?.message || err;
+    errorMsg.value = msg.includes('Permission')
+      ? 'Camera access denied. Please allow camera access in your browser settings.'
+      : `Failed to access camera: ${msg}`;
   }
-
-  onMounted(() => {
-    startScanner()
-  })
-
-  onBeforeUnmount(() => {
-    if (scannerRef.value) {
-      scannerRef.value.stop().catch(() => { })
-      scannerRef.value.clear().catch(() => { })
-      scannerRef.value = null
-    }
-  })
 </script>
 
 <template>
