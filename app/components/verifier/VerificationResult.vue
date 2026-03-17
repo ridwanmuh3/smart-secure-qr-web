@@ -17,9 +17,9 @@
       case 'tampered':
         return { icon: 'lucide:x-circle', label: 'INVALID', color: 'red', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', iconColor: 'text-red-500' }
       case 'not_yet_valid':
-        return { icon: 'lucide:clock', label: 'NOT YET VALID', color: 'amber', bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', iconColor: 'text-amber-500' }
+        return { icon: 'lucide:clock', label: 'EARLY ACCESS DENIED', color: 'amber', bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', iconColor: 'text-amber-500' }
       case 'expired':
-        return { icon: 'lucide:alert-triangle', label: 'EXPIRED', color: 'gray', bg: 'bg-gray-50', border: 'border-gray-200', text: 'text-gray-700', iconColor: 'text-gray-500' }
+        return { icon: 'lucide:alert-triangle', label: 'ACCESS REJECTED', color: 'gray', bg: 'bg-gray-50', border: 'border-gray-200', text: 'text-gray-700', iconColor: 'text-gray-500' }
       default:
         return { icon: 'lucide:alert-circle', label: 'ERROR', color: 'red', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', iconColor: 'text-red-500' }
     }
@@ -55,8 +55,8 @@
       This QR has been scanned {{ result.scan_count }} times. Beware of potential cloning.
     </div>
 
-    <!-- Detail info (for authentic) -->
-    <div v-if="result.status === 'authentic' && result.file_name"
+    <!-- Detail info (for authentic, not_yet_valid, expired) -->
+    <div v-if="['authentic', 'not_yet_valid', 'expired'].includes(result.status) && result.file_name"
       class="bg-white rounded-2xl border border-gray-200/80 p-5 text-sm space-y-2.5">
       <h4 class="font-bold text-gray-900 mb-3">Document Details</h4>
       <div class="flex justify-between"><span class="text-gray-500">File Name</span><span
@@ -68,9 +68,9 @@
       <div class="flex justify-between"><span class="text-gray-500">Signed</span><span class="text-gray-700">{{
         formatDate(result.issued_at) }}</span></div>
       <div class="flex justify-between"><span class="text-gray-500">Valid From</span><span
-          class="text-emerald-600 font-medium">{{ formatDate(result.valid_from) }}</span></div>
+          :class="result.status === 'not_yet_valid' ? 'text-amber-600 font-medium' : 'text-emerald-600 font-medium'">{{ formatDate(result.valid_from) }}</span></div>
       <div class="flex justify-between"><span class="text-gray-500">Valid Until</span><span
-          class="text-emerald-600 font-medium">{{ formatDate(result.valid_until) }}</span></div>
+          :class="result.status === 'expired' ? 'text-red-600 font-medium' : 'text-emerald-600 font-medium'">{{ formatDate(result.valid_until) }}</span></div>
       <div class="flex justify-between"><span class="text-gray-500">Hash SHA3-256</span><span
           class="font-mono text-xs text-gray-600 truncate max-w-45" :title="result.document_hash">{{
             result.document_hash }}</span></div>
@@ -80,16 +80,6 @@
           class="text-gray-700">{{ result.metadata }}</span></div>
       <div class="flex justify-between"><span class="text-gray-500">Total Scans</span><span class="text-gray-700">{{
         result.scan_count }}</span></div>
-    </div>
-
-    <!-- Time info (for not_yet_valid / expired) -->
-    <div v-if="(result.status === 'not_yet_valid' || result.status === 'expired') && result.valid_from"
-      class="bg-white rounded-2xl border border-gray-200/80 p-5 text-sm">
-      <h4 class="font-bold text-gray-900 mb-3">Time Information</h4>
-      <div class="flex justify-between mb-2"><span class="text-gray-500">Valid From</span><span
-          class="text-emerald-600 font-medium">{{ formatDate(result.valid_from) }}</span></div>
-      <div class="flex justify-between"><span class="text-gray-500">Valid Until</span><span
-          class="text-emerald-600 font-medium">{{ formatDate(result.valid_until) }}</span></div>
     </div>
 
     <div class="flex justify-center">

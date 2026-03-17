@@ -83,7 +83,7 @@ export async function verifySecureId(event: any, secureId: string, sourceIP: str
   if (now < validFrom) {
     return ok<VerificationResult>({
       status: 'not_yet_valid',
-      message: 'Document is not yet valid',
+      message: 'Early access denied — document is not yet valid',
       ...baseInfo,
     })
   }
@@ -91,7 +91,7 @@ export async function verifySecureId(event: any, secureId: string, sourceIP: str
   if (now > validUntil) {
     return ok<VerificationResult>({
       status: 'expired',
-      message: 'Document has expired',
+      message: 'Access rejected — document validity has expired',
       ...baseInfo,
     })
   }

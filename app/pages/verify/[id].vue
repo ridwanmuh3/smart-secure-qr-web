@@ -34,8 +34,8 @@
     switch (result.value.status) {
       case 'authentic': return { icon: 'lucide:check-circle-2', label: 'VERIFIED', bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', iconColor: 'text-emerald-500' }
       case 'tampered': return { icon: 'lucide:x-circle', label: 'INVALID', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', iconColor: 'text-red-500' }
-      case 'not_yet_valid': return { icon: 'lucide:clock', label: 'NOT YET VALID', bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', iconColor: 'text-amber-500' }
-      case 'expired': return { icon: 'lucide:alert-triangle', label: 'EXPIRED', bg: 'bg-gray-50', border: 'border-gray-200', text: 'text-gray-600', iconColor: 'text-gray-500' }
+      case 'not_yet_valid': return { icon: 'lucide:clock', label: 'EARLY ACCESS DENIED', bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', iconColor: 'text-amber-500' }
+      case 'expired': return { icon: 'lucide:alert-triangle', label: 'ACCESS REJECTED', bg: 'bg-gray-50', border: 'border-gray-200', text: 'text-gray-600', iconColor: 'text-gray-500' }
       default: return { icon: 'lucide:alert-circle', label: 'ERROR', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', iconColor: 'text-red-500' }
     }
   })
@@ -111,9 +111,9 @@
           <div v-if="result.issuer_id" class="flex justify-between"><span class="text-gray-500">Issuer</span><span
               class="text-gray-700">{{ result.issuer_id }}</span></div>
           <div v-if="result.valid_from" class="flex justify-between"><span class="text-gray-500">Valid From</span><span
-              class="text-gray-700 text-xs">{{ formatDate(result.valid_from) }}</span></div>
+              class="text-xs" :class="result.status === 'not_yet_valid' ? 'text-amber-600 font-medium' : 'text-gray-700'">{{ formatDate(result.valid_from) }}</span></div>
           <div v-if="result.valid_until" class="flex justify-between"><span class="text-gray-500">Valid
-              Until</span><span class="text-gray-700 text-xs">{{ formatDate(result.valid_until) }}</span></div>
+              Until</span><span class="text-xs" :class="result.status === 'expired' ? 'text-red-600 font-medium' : 'text-gray-700'">{{ formatDate(result.valid_until) }}</span></div>
           <div v-if="result.document_hash" class="flex justify-between"><span class="text-gray-500">Hash</span><span
               class="font-mono text-xs text-gray-600 truncate max-w-40" :title="result.document_hash">{{
                 result.document_hash }}</span></div>

@@ -2,7 +2,7 @@ import crypto from 'node:crypto'
 import { serverSupabaseClient } from '#supabase/server'
 import { hashSHA3, sign } from '~~/server/utils/crypto'
 import { tlockEncrypt } from '~~/server/utils/tlock'
-import { generateQRBase64, generateQRBuffer, buildVerifyURL } from '~~/server/utils/qr'
+import { generateQRBase64, generateQRBuffer } from '~~/server/utils/qr'
 import { embedQRInPDF } from '~~/server/utils/pdf'
 
 export default defineEventHandler(async (event) => {
@@ -90,8 +90,9 @@ export default defineEventHandler(async (event) => {
 
   if (insertErr) return fail(insertErr.message)
 
-  // 7. Generate QR code (content = verification URL)
-  const qrContent = buildVerifyURL(secureId)
+  // 7. Generate QR code (content = verification URL with redirect)
+  const baseUrl = process.env.NUXT_PUBLIC_BASE_URL || getRequestURL(event).origin
+  const qrContent = `${baseUrl}/r/${secureId}`
   const qrBase64 = await generateQRBase64(qrContent)
 
   // 8. Embed in PDF if applicable
