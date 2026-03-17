@@ -20,6 +20,8 @@
         return { icon: 'lucide:clock', label: 'EARLY ACCESS DENIED', color: 'amber', bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', iconColor: 'text-amber-500' }
       case 'expired':
         return { icon: 'lucide:alert-triangle', label: 'ACCESS REJECTED', color: 'gray', bg: 'bg-gray-50', border: 'border-gray-200', text: 'text-gray-700', iconColor: 'text-gray-500' }
+      case 'replay_blocked':
+        return { icon: 'lucide:shield-off', label: 'REPLAY BLOCKED', color: 'red', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', iconColor: 'text-red-500' }
       default:
         return { icon: 'lucide:alert-circle', label: 'ERROR', color: 'red', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', iconColor: 'text-red-500' }
     }
@@ -48,11 +50,18 @@
       <p class="text-sm mt-1.5" :class="statusConfig.text">{{ result.message }}</p>
     </div>
 
-    <!-- Scan count warning -->
-    <div v-if="result.scan_count && result.scan_count > 5"
+    <!-- QR Cloning Detection Warning -->
+    <div v-if="result.cloning_suspected"
+      class="p-3.5 bg-orange-50 border border-orange-300 rounded-xl text-sm text-orange-800 font-medium">
+      <Icon icon="lucide:copy-check" class="inline w-4 h-4 mr-1" />
+      QR cloning detected — scanned from {{ result.unique_ip_count }} unique sources ({{ result.scan_count }} total scans). This QR code may have been duplicated.
+    </div>
+
+    <!-- High scan count warning (non-cloning) -->
+    <div v-else-if="result.scan_count && result.scan_count > 5"
       class="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-700 font-medium">
       <Icon icon="lucide:alert-triangle" class="inline w-4 h-4 mr-1" />
-      This QR has been scanned {{ result.scan_count }} times. Beware of potential cloning.
+      This QR has been scanned {{ result.scan_count }} times.
     </div>
 
     <!-- Detail info (for authentic, not_yet_valid, expired) -->
@@ -80,6 +89,8 @@
           class="text-gray-700">{{ result.metadata }}</span></div>
       <div class="flex justify-between"><span class="text-gray-500">Total Scans</span><span class="text-gray-700">{{
         result.scan_count }}</span></div>
+      <div v-if="result.unique_ip_count" class="flex justify-between"><span class="text-gray-500">Unique Sources</span><span
+          :class="result.cloning_suspected ? 'text-orange-600 font-medium' : 'text-gray-700'">{{ result.unique_ip_count }}</span></div>
     </div>
 
     <div class="flex justify-center">

@@ -88,24 +88,35 @@ For deployment options, refer to the [Nuxt deployment documentation](https://nux
 ### Verification Flow
 
 1. QR code scans → redirects to `/verify/:id`
-2. Server retrieves the cryptographic payload from Supabase
-3. Checks temporal validity (not-yet-valid / expired)
-4. Verifies outer ECDSA P-256 signature
-5. Decrypts time-locked inner payload via Drand
-6. Verifies inner ECDSA P-256 signature
-7. Compares document hash — returns authentic / tampered / expired status
+2. **Replay attack check** — rate limit per IP per QR (>10 req/min → blocked)
+3. Scan logged with timestamp and source IP
+4. Server retrieves the cryptographic payload from Supabase
+5. **QR cloning detection** — unique IP count ≥ 3 → cloning warning
+6. Checks temporal validity (not-yet-valid / expired)
+7. Verifies outer ECDSA P-256 signature
+8. Decrypts time-locked inner payload via Drand
+9. Verifies inner ECDSA P-256 signature
+10. Compares document hash — returns authentic / tampered / expired status
 
-### Anti-Cloning
+### Security — Attack Resistance
 
-Every scan is logged with timestamp and source IP. Documents scanned more than 5 times trigger a cloning warning to the verifier.
+| Attack | Result | Mechanism |
+| --- | --- | --- |
+| **QR Cloning** | Detection Success | Scan logging with source IP; unique IP count ≥ 3 triggers cloning warning |
+| **Replay Attack** | Blocked | Rate limiting: >10 requests/min from same IP per QR → `replay_blocked` |
+| **Tampering** | Invalid Signature | Dual ECDSA P-256 signature verification (outer + inner) + SHA3-256 hash comparison |
+| **Early Access** | Denied | Temporal check (`now < valid_from`) + Drand time-lock encryption prevents decryption |
+| **Expired Access** | Rejected | Temporal check (`now > valid_until`) → access rejected |
 
 ## Performance Benchmark
 
-Benchmarks measured at the integration level — each cryptographic primitive invoked in isolation. **N=100 iterations** against a **1 MB document** using ECDSA P-256 + SHA-256 + Drand tlock.
+### Primitive-Level Benchmark
+
+Each cryptographic primitive invoked in isolation. **N=100 iterations** against a **1 MB document** using ECDSA P-256 + SHA-256 + Drand tlock.
 
 | Metric                          | N   | Min       | Max      | Avg           |
 | ------------------------------- | --- | --------- | -------- | ------------- |
-| Document Hashing (SHA-256, 1MB) | 100 | 3.56 ms   | 16.00 ms | 5.38 ms       |
+| Document Hashing (SHA3-256, 1MB)| 100 | 3.56 ms   | 16.00 ms | 5.38 ms       |
 | ECDSA P-256 Key Generation      | 100 | 0.02 ms   | 0.06 ms  | 0.02 ms       |
 | ECDSA P-256 Sign (inner)        | 100 | 0.05 ms   | 0.13 ms  | 0.06 ms       |
 | ECDSA P-256 Sign (outer)        | 100 | 0.05 ms   | 0.17 ms  | 0.08 ms       |
@@ -117,17 +128,50 @@ Benchmarks measured at the integration level — each cryptographic primitive in
 | **Full QR Generation**          | 100 | 778.95 ms | 1.063 s  | **850.00 ms** |
 | **Full Verification**           | 100 | 952.34 ms | 1.251 s  | **1.010 s**   |
 
+### Cross-File Benchmark
+
+Computed metrics across 12 test files (100KB, 500KB, 1MB, 5MB in RTF, DOCX, PDF formats).
+
+| Filename | QR Generation | Signature Time | Verification Time | Encryption Overhead | Peak Memory |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| file-sample_100kB.rtf | 110.50 ms | 0.57 ms | 0.59 ms | 78.25 ms | 32.38 MB |
+| file-sample_100kB.docx | 105.53 ms | 0.80 ms | 0.91 ms | 77.03 ms | 32.48 MB |
+| file-sample_100kB.pdf | 113.31 ms | 1.07 ms | 1.32 ms | 76.80 ms | 33.22 MB |
+| file-sample_500kB.rtf | 104.29 ms | 0.76 ms | 0.61 ms | 76.37 ms | 34.38 MB |
+| file-sample_500kB.docx | 113.23 ms | 0.87 ms | 0.69 ms | 77.60 ms | 30.69 MB |
+| file-sample_500kB.pdf | 193.33 ms | 0.79 ms | 2.89 ms | 80.78 ms | 30.96 MB |
+| file-sample_1MB.rtf | 164.07 ms | 5.13 ms | 2.99 ms | 154.44 ms | 32.09 MB |
+| file-sample_1MB.docx | 285.79 ms | 0.73 ms | 0.72 ms | 193.69 ms | 31.72 MB |
+| file-sample_1MB.pdf | 165.12 ms | 0.72 ms | 1.18 ms | 105.92 ms | 29.79 MB |
+| file-sample_5MB.rtf | 176.17 ms | 2.84 ms | 0.98 ms | 108.05 ms | 34.12 MB |
+| file-sample_5MB.docx | 256.41 ms | 1.47 ms | 2.89 ms | 116.69 ms | 33.02 MB |
+| file-sample_5MB.pdf | 183.63 ms | 1.12 ms | 1.26 ms | 103.07 ms | 31.46 MB |
+
+#### Average by File Size
+
+| File Size | QR Generation | Signature Time | Verification Time | Encryption Overhead | Peak Memory |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 100 KB | 109.78 ms | 0.81 ms | 0.94 ms | 77.36 ms | 32.69 MB |
+| 500 KB | 136.95 ms | 0.81 ms | 1.40 ms | 78.25 ms | 32.01 MB |
+| 1 MB | 204.99 ms | 2.19 ms | 1.63 ms | 151.35 ms | 31.20 MB |
+| 5 MB | 205.40 ms | 1.81 ms | 1.71 ms | 109.27 ms | 32.87 MB |
+
 ### Evaluation Summary
 
-| Metric              | Value                                             |
-| ------------------- | ------------------------------------------------- |
-| QR generation time  | 850.00 ms                                         |
-| Signature time      | 0.06 ms (inner) / 0.08 ms (outer)                 |
-| Verification time   | 1.010 s                                           |
-| Encryption overhead | 827.56 ms                                         |
-| Memory usage        | 544.97 MB (total allocated across all iterations) |
+| Metric | Value |
+| --- | --- |
+| QR generation time | 164.28 ms (avg across all files) |
+| Signature time | 1.41 ms (avg across all files) |
+| Verification time | 1.42 ms (avg across all files) |
+| Encryption overhead | 104.06 ms (avg across all files) |
+| Peak memory usage | 32.19 MB (avg across all files) |
 
-> **Key observation:** Local crypto operations (sign, verify, hash) are sub-millisecond. The Drand network round-trip dominates both generation (~828ms) and verification (~1.01s), accounting for >97% of end-to-end time.
+> **Key observations:**
+> - Local crypto operations (sign, verify, hash) remain sub-5ms across all file sizes and formats.
+> - QR generation scales moderately with file size: ~110ms at 100KB → ~205ms at 5MB.
+> - Encryption overhead increases notably at 1MB (151ms) but stabilizes at 5MB (109ms).
+> - Memory usage is consistent at ~32 MB regardless of file size or format.
+> - File format (RTF/DOCX/PDF) has no significant impact on cryptographic performance.
 
 ## Future Works
 

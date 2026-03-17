@@ -36,6 +36,7 @@
       case 'tampered': return { icon: 'lucide:x-circle', label: 'INVALID', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', iconColor: 'text-red-500' }
       case 'not_yet_valid': return { icon: 'lucide:clock', label: 'EARLY ACCESS DENIED', bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', iconColor: 'text-amber-500' }
       case 'expired': return { icon: 'lucide:alert-triangle', label: 'ACCESS REJECTED', bg: 'bg-gray-50', border: 'border-gray-200', text: 'text-gray-600', iconColor: 'text-gray-500' }
+      case 'replay_blocked': return { icon: 'lucide:shield-off', label: 'REPLAY BLOCKED', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', iconColor: 'text-red-500' }
       default: return { icon: 'lucide:alert-circle', label: 'ERROR', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', iconColor: 'text-red-500' }
     }
   })
@@ -94,11 +95,18 @@
           <p :class="statusConfig.text" class="text-sm mt-1.5 opacity-80">{{ result.message }}</p>
         </div>
 
-        <!-- Scan count warning -->
-        <div v-if="result.scan_count && result.scan_count > 5"
+        <!-- QR Cloning Detection Warning -->
+        <div v-if="result.cloning_suspected"
+          class="p-3.5 bg-orange-50 border border-orange-300 rounded-xl text-sm text-orange-800 text-center font-medium">
+          <Icon icon="lucide:copy-check" class="inline w-4 h-4 mr-1" />
+          QR cloning detected — scanned from {{ result.unique_ip_count }} unique sources ({{ result.scan_count }} total scans)
+        </div>
+
+        <!-- High scan count warning -->
+        <div v-else-if="result.scan_count && result.scan_count > 5"
           class="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-700 text-center font-medium">
           <Icon icon="lucide:alert-triangle" class="inline w-4 h-4 mr-1" />
-          Scanned {{ result.scan_count }} times — beware of potential cloning
+          Scanned {{ result.scan_count }} times
         </div>
 
         <!-- Details -->
@@ -119,6 +127,8 @@
                 result.document_hash }}</span></div>
           <div v-if="result.scan_count" class="flex justify-between"><span class="text-gray-500">Total Scans</span><span
               class="text-gray-700">{{ result.scan_count }}</span></div>
+          <div v-if="result.unique_ip_count" class="flex justify-between"><span class="text-gray-500">Unique Sources</span><span
+              :class="result.cloning_suspected ? 'text-orange-600 font-medium' : 'text-gray-700'">{{ result.unique_ip_count }}</span></div>
         </div>
       </div>
 

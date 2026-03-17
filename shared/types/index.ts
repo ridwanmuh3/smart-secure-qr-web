@@ -61,7 +61,7 @@ export interface GenerateResult {
 }
 
 export interface VerificationResult {
-  status: 'authentic' | 'tampered' | 'not_yet_valid' | 'expired' | 'error'
+  status: 'authentic' | 'tampered' | 'not_yet_valid' | 'expired' | 'replay_blocked' | 'error'
   message: string
   document_hash?: string
   file_name?: string
@@ -73,6 +73,8 @@ export interface VerificationResult {
   metadata?: string
   public_key_hex?: string
   scan_count?: number
+  unique_ip_count?: number
+  cloning_suspected?: boolean
 }
 
 export interface ScanLog {

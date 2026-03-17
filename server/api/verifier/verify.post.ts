@@ -24,7 +24,24 @@ export default defineEventHandler(async (event) => {
 export async function verifySecureId(event: any, secureId: string, sourceIP: string) {
   const client = await serverSupabaseClient(event)
 
-  // Log scan
+  // ── REPLAY ATTACK PROTECTION ──
+  // Rate limit: block if same IP scans same QR > 10 times in 1 minute
+  const oneMinuteAgo = new Date(Date.now() - 60_000).toISOString()
+  const { count: recentFromIp } = await client
+    .from('scan_logs')
+    .select('*', { count: 'exact', head: true })
+    .eq('secure_id', secureId)
+    .eq('source_ip', sourceIP)
+    .gte('scanned_at', oneMinuteAgo)
+
+  if (recentFromIp && recentFromIp > 10) {
+    return ok<VerificationResult>({
+      status: 'replay_blocked',
+      message: 'Replay attack blocked — too many verification attempts from this source',
+    })
+  }
+
+  // Log scan (after rate limit check so blocked attempts aren't logged)
   await client.from('scan_logs').insert({ secure_id: secureId, source_ip: sourceIP })
 
   // Get payload
@@ -62,6 +79,18 @@ export async function verifySecureId(event: any, secureId: string, sourceIP: str
     .eq('secure_id', secureId)
 
   const scanCount = count || 0
+
+  // ── QR CLONING DETECTION ──
+  // Count unique IPs that have scanned this QR
+  const { data: ipRows } = await client
+    .from('scan_logs')
+    .select('source_ip')
+    .eq('secure_id', secureId)
+
+  const uniqueIpCount = new Set(ipRows?.map(r => r.source_ip).filter(Boolean)).size
+  const cloningThreshold = 3
+  const cloningSuspected = uniqueIpCount >= cloningThreshold
+
   const now = new Date()
   const validFrom = new Date(payload.valid_from)
   const validUntil = new Date(payload.valid_until)
@@ -77,6 +106,8 @@ export async function verifySecureId(event: any, secureId: string, sourceIP: str
     metadata: payload.metadata,
     public_key_hex: Buffer.from(payload.public_key || keyRow.public_key, 'base64').toString('hex'),
     scan_count: scanCount,
+    unique_ip_count: uniqueIpCount,
+    cloning_suspected: cloningSuspected,
   }
 
   // Check time window
