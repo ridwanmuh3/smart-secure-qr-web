@@ -1,26 +1,23 @@
 import type { KeyPairInfo, GenerateResult } from "#shared/types";
 
 export function useIssuer() {
-  const form = reactive({
-    file: null as File | null,
-    fileName: "",
-    fileSize: 0,
-    validFrom: "",
-    validUntil: "",
-    selectedKeyId: "",
-    metadata: "",
-    issuerID: "",
-    qrPosition: "bottom-right",
-    qrPage: 0,
-    qrSize: 30,
-  });
-
+  const file = ref<File | null>(null);
+  const fileName = ref("");
+  const fileSize = ref(0);
+  const validFrom = ref("");
+  const validUntil = ref("");
+  const selectedKeyId = ref("");
+  const metadata = ref("");
+  const issuerID = ref("");
+  const qrPosition = ref("bottom-right");
+  const qrPage = ref(0);
+  const qrSize = ref(30);
   const isGenerating = ref(false);
   const result = ref<GenerateResult | null>(null);
   const error = ref("");
   const keys = ref<KeyPairInfo[]>([]);
 
-  const isPDF = computed(() => form.fileName.toLowerCase().endsWith(".pdf"));
+  const isPDF = computed(() => fileName.value.toLowerCase().endsWith(".pdf"));
 
   function formatDatetimeLocal(d: Date): string {
     const pad = (n: number) => n.toString().padStart(2, "0");
@@ -29,7 +26,7 @@ export function useIssuer() {
 
   function setTimePreset(preset: string) {
     const now = new Date();
-    form.validFrom = formatDatetimeLocal(now);
+    validFrom.value = formatDatetimeLocal(now);
     const end = new Date(now);
     switch (preset) {
       case "hour":
@@ -45,13 +42,13 @@ export function useIssuer() {
         end.setMonth(end.getMonth() + 1);
         break;
     }
-    form.validUntil = formatDatetimeLocal(end);
+    validUntil.value = formatDatetimeLocal(end);
   }
 
   function setFile(f: File) {
-    form.file = f;
-    form.fileName = f.name;
-    form.fileSize = f.size;
+    file.value = f;
+    fileName.value = f.name;
+    fileSize.value = f.size;
     error.value = "";
   }
 
@@ -64,8 +61,8 @@ export function useIssuer() {
       const defaultKey = res.data.find(
         (k) => k.is_default && k.has_private_key,
       );
-      if (defaultKey && !form.selectedKeyId) {
-        form.selectedKeyId = defaultKey.id;
+      if (defaultKey && !selectedKeyId.value) {
+        selectedKeyId.value = defaultKey.id;
       }
     } catch (e: any) {
       console.error("Failed to load keys:", e);
@@ -74,10 +71,10 @@ export function useIssuer() {
 
   async function generateQR() {
     if (
-      !form.file ||
-      !form.selectedKeyId ||
-      !form.validFrom ||
-      !form.validUntil
+      !file.value ||
+      !selectedKeyId.value ||
+      !validFrom.value ||
+      !validUntil.value
     ) {
       error.value = "Please fill in all required fields";
       return;
@@ -88,15 +85,15 @@ export function useIssuer() {
 
     try {
       const formData = new FormData();
-      formData.append("file", form.file);
-      formData.append("key_pair_id", form.selectedKeyId);
-      formData.append("valid_from", new Date(form.validFrom).toISOString());
-      formData.append("valid_until", new Date(form.validUntil).toISOString());
-      formData.append("issuer_id", form.issuerID);
-      formData.append("metadata", form.metadata);
-      formData.append("qr_position", form.qrPosition);
-      formData.append("qr_page", form.qrPage.toString());
-      formData.append("qr_size", form.qrSize.toString());
+      formData.append("file", file.value);
+      formData.append("key_pair_id", selectedKeyId.value);
+      formData.append("valid_from", new Date(validFrom.value).toISOString());
+      formData.append("valid_until", new Date(validUntil.value).toISOString());
+      formData.append("issuer_id", issuerID.value);
+      formData.append("metadata", metadata.value);
+      formData.append("qr_position", qrPosition.value);
+      formData.append("qr_page", qrPage.value.toString());
+      formData.append("qr_size", qrSize.value.toString());
 
       const res = await $fetch<{ success: boolean; data: GenerateResult }>(
         "/api/issuer/generate",
@@ -141,18 +138,27 @@ export function useIssuer() {
   }
 
   function reset() {
-    form.file = null;
-    form.fileName = "";
-    form.fileSize = 0;
+    file.value = null;
+    fileName.value = "";
+    fileSize.value = 0;
     result.value = null;
     error.value = "";
   }
 
-  // Initialize with day preset
   setTimePreset("day");
 
   return {
-    ...form,
+    file,
+    fileName,
+    fileSize,
+    validFrom,
+    validUntil,
+    selectedKeyId,
+    metadata,
+    issuerID,
+    qrPosition,
+    qrPage,
+    qrSize,
     isGenerating,
     result,
     error,
