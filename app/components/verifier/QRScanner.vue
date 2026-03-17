@@ -5,14 +5,14 @@
     decoded: [data: string]
   }>()
 
-  const { Html5Qrcode } = await import('html5-qrcode')
-  const scanner = new Html5Qrcode('qr-reader')
   const scannerRef = ref<any>(null)
   const isStarting = ref(true)
   const errorMsg = ref('')
 
   watchPostEffect(async (onCleanup) => {
     try {
+      const { Html5Qrcode } = await import('html5-qrcode')
+      const scanner = new Html5Qrcode('qr-reader')
       scannerRef.value = scanner;
 
       await scanner.start(
